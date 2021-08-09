@@ -109,8 +109,6 @@ for dataset in [iguana_data, iguana_data_agg]:
     dataset.replace(triplestore_short_mapping, inplace=True)
     dataset.replace(dataset_mapping, inplace=True)
 
-
-
 # iguana_data = iguana_data.query("triplestore != 'Tb' and triplestore != 'Th'")
 # iguana_data_agg = iguana_data_agg.query("triplestore != 'Tb' and triplestore != 'Th'")
 
@@ -130,7 +128,7 @@ cat_order = [
 dataset['triplestore'] = pd.Categorical(dataset['triplestore'], categories=cat_order,
                                         ordered=True)
 iguana_data_agg['triplestore'] = pd.Categorical(iguana_data_agg['triplestore'], categories=cat_order,
-                                        ordered=True)
+                                                ordered=True)
 
 data_agg = (iguana_data_agg >> group_by('dataset', 'triplestore')
             >> summarize(mean_qps=np.mean(X.qps_mean),
@@ -139,7 +137,6 @@ data_agg = (iguana_data_agg >> group_by('dataset', 'triplestore')
             )
 ticks = [10 ** i for i in range(-4, 5)]
 tick_labels = ["10{}".format(str(i).translate(trans)) for i in range(-4, 5)]
-
 
 # from matplotlib import rc
 # rc('text', usetex=True)
@@ -184,7 +181,7 @@ fully_agg = (iguana_data >> group_by("triplestore", "dataset")
              )
 
 fully_agg['triplestore'] = pd.Categorical(fully_agg['triplestore'], categories=cat_order,
-                                        ordered=True)
+                                          ordered=True)
 
 # data_agg.merge(fully_agg, on=["triplestore", "dataset"]).to_csv("iguana_data_fully_agg.tsv", sep="\t")
 
@@ -284,13 +281,16 @@ def func(d: pd.DataFrame):
 
 
 watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'] = watdiv_iguana_data_agg.apply(func, axis=1).values
-watdiv_iguana_data_agg['relative QpS (log10)'] = np.log10(watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'])
+watdiv_iguana_data_agg[f'QpS rel. to {triplestore}'] = np.log10(watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'])
 
-r = (ggplot(watdiv_iguana_data_agg, aes('queryID', 'triplestore', fill='relative QpS (log10)'))
+watdiv_iguana_data_agg['triplestore'] = pd.Categorical(watdiv_iguana_data_agg['triplestore'], categories=list(reversed(cat_order)),
+                                                ordered=True)
+
+r = (ggplot(watdiv_iguana_data_agg, aes('queryID', 'triplestore', fill=f'QpS rel. to {triplestore}'))
      + geom_tile()
      # + geom_text(aes(label=f'avgQPS relative to {triplestore}'), size=10)
-     + xlab("query ID")
-     + ylab("triplestore")
+     + xlab("Query ID")
+     + ylab("Triplestore")
      # + geom_text(mapping=aes(label='QMpH_rounded'), size=5, va='bottom', angle="45" )
      + theme_light()
      + theme(strip_background=element_blank(),
@@ -300,11 +300,22 @@ r = (ggplot(watdiv_iguana_data_agg, aes('queryID', 'triplestore', fill='relative
              # legend_text=element_text('speedup (log10)'),
              # legend_position='none',
              # axis_text_y=element_text(weight="bold")
-             figure_size=(7.5, 1.5)
+             figure_size=(7.5, 1.5),
+             legend_title_align='center',
              )
+     + scale_fill_gradient2(low="#08519c", mid="#f7fbff", high="red",  # colors in the scale
+                            midpoint=0,  # same midpoint for plots (mean of the range)
+                            breaks=list(range(-4, 2)),  # breaks in the scale bar
+                            labels=["10" + str(x).translate(trans) if x != 0 else "1" for x in range(-4, 2)],
+                            limits=(1, -4.5),
+                            na_value="black"
+                            )
      )
 name = "paper-heatmap-watdiv-rel-T-hsi"
 save_as_pdf_pages([r], filename=f"{output_dir}{name}.pdf", bbox_inches="tight")
 watdiv_iguana_data_agg.to_csv(f"{output_dir}{name}.tsv", sep="\t", index=None)
 r.save(f"{output_dir}{name}.svg")
 # print(q)
+
+
+

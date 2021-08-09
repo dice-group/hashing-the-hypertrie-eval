@@ -83,7 +83,12 @@ data >>= (
 
 def index_stats_plot(name: str,
                      data: pd.DataFrame,
-                     x: str, y: str, color_map: dict, data_labels: str, padding: str, ylabel: str) -> ggplot:
+                     x: str, y: str,
+                     color_map: dict,
+                     data_labels: str,
+                     padding: str,
+                     ylabel: str,
+                     with_x_legend:bool) -> ggplot:
     p = (ggplot(data=data) +
          geom_bar(aes(y=y, x=x, fill=x), stat="identity", position='dodge')
          + scale_fill_manual(values=color_map)
@@ -95,15 +100,16 @@ def index_stats_plot(name: str,
          + coord_flip()
          + theme_light()
          + theme(
-                # strip_background=element_rect(fill="steelblue"),
                 axis_text_x=element_blank(),
                 panel_grid_major=element_blank(),
                 panel_grid_minor=element_blank(),
+                axis_text_y=None if with_x_legend else element_blank(),
+                axis_ticks_major_y=None if with_x_legend else element_blank(),
                 legend_position='none',
-                # axis_text_y=element_text(weight="bold")
+                figure_size=(4.0, 2.5)
             )
          )
-    save_as_pdf_pages([p], filename=output_dir.joinpath(f"paper-{name}.pdf").absolute())
+    save_as_pdf_pages([p], filename=output_dir.joinpath(f"paper-{name}.pdf").absolute(), bbox_inches="tight")
     p.save(output_dir.joinpath(f"paper-{name}.svg").absolute())
     return p
 
@@ -121,7 +127,9 @@ index_stats_plot(name="index-sizes",
                  color_map=color_map,
                  data_labels='bytes_per_statement_label',
                  padding='index_size_y_pad',
-                 ylabel="Index size in bytes per statement")
+                 ylabel="Index size [bytes/statement]",
+                 with_x_legend=True,
+                 )
 
 index_stats_plot(name="loading-times",
                  data=data,
@@ -130,4 +138,6 @@ index_stats_plot(name="loading-times",
                  color_map=color_map,
                  data_labels='statements1k_per_second_label',
                  padding='loading_time_y_pad',
-                 ylabel="Loading speed in 1k statements per second")
+                 ylabel="Loading speed [1k statements/second]",
+                 with_x_legend=False
+                 )

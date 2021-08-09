@@ -120,6 +120,10 @@ color_map.update(**{
     'Tentris-h': "#66c2a5e0",
     'Tentris-i': "#fc8d62e0"
 })
+
+dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
+data['dataset'] = pd.Categorical(data['dataset'], categories=dataset_order, ordered=True)
+
 index_stats_plot(name="index-sizes",
                  data=data,
                  x='triplestore',

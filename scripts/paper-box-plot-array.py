@@ -281,10 +281,12 @@ def func(d: pd.DataFrame):
 
 
 watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'] = watdiv_iguana_data_agg.apply(func, axis=1).values
-watdiv_iguana_data_agg[f'QpS rel. to {triplestore}'] = np.log10(watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'])
+watdiv_iguana_data_agg[f'QpS rel. to {triplestore}'] = np.log10(
+    watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'])
 
-watdiv_iguana_data_agg['triplestore'] = pd.Categorical(watdiv_iguana_data_agg['triplestore'], categories=list(reversed(cat_order)),
-                                                ordered=True)
+watdiv_iguana_data_agg['triplestore'] = pd.Categorical(watdiv_iguana_data_agg['triplestore'],
+                                                       categories=list(reversed(cat_order)),
+                                                       ordered=True)
 
 r = (ggplot(watdiv_iguana_data_agg, aes('queryID', 'triplestore', fill=f'QpS rel. to {triplestore}'))
      + geom_tile()
@@ -300,7 +302,7 @@ r = (ggplot(watdiv_iguana_data_agg, aes('queryID', 'triplestore', fill=f'QpS rel
              # legend_text=element_text('speedup (log10)'),
              # legend_position='none',
              # axis_text_y=element_text(weight="bold")
-             figure_size=(7.5, 1.5),
+             figure_size=(6.5, 1.25),
              legend_title_align='center',
              )
      + scale_fill_gradient2(low="#08519c", mid="#f7fbff", high="red",  # colors in the scale
@@ -316,6 +318,3 @@ save_as_pdf_pages([r], filename=f"{output_dir}{name}.pdf", bbox_inches="tight")
 watdiv_iguana_data_agg.to_csv(f"{output_dir}{name}.tsv", sep="\t", index=None)
 r.save(f"{output_dir}{name}.svg")
 # print(q)
-
-
-

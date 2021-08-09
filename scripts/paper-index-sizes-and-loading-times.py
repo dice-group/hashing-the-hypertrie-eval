@@ -15,13 +15,13 @@ triplestore_mapping = {
     'gstore': 'gStore',
     'virtuoso': 'Virtuoso',
     'tentris-1.0.7_lsb_unused_0': 'Tentris-b',
-    'tentris-1.1.0_lsb_unused_0': 'Tentris-h',
-    'tentris-1.1.0_lsb_unused_1': 'Tentris-i'
+    'tentris-1.1.0_lsb_unused_0': 'Tentris-hs',
+    'tentris-1.1.0_lsb_unused_1': 'Tentris-hsi'
 }
 triplestore_order = [
     'Tentris-b',
-    'Tentris-h',
-    'Tentris-i',
+    'Tentris-hs',
+    'Tentris-hsi',
     'Blazegraph',
     'Fuseki',
     'Fuseki-LTJ',
@@ -117,8 +117,8 @@ def index_stats_plot(name: str,
 color_map = defaultdict(lambda: "lightgrey")
 color_map.update(**{
     'Tentris-b': "#8da0cbe0",
-    'Tentris-h': "#66c2a5e0",
-    'Tentris-i': "#fc8d62e0"
+    'Tentris-hs': "#66c2a5e0",
+    'Tentris-hsi': "#fc8d62e0"
 })
 
 dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']

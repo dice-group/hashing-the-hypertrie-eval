@@ -138,6 +138,12 @@ data_agg = (iguana_data_agg >> group_by('dataset', 'triplestore')
 ticks = [10 ** i for i in range(-4, 5)]
 tick_labels = ["10{}".format(str(i).translate(trans)) for i in range(-4, 5)]
 
+dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
+data_agg['dataset'] = pd.Categorical(data_agg['dataset'], categories=dataset_order, ordered=True)
+dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
+iguana_data_agg['dataset'] = pd.Categorical(iguana_data_agg['dataset'], categories=dataset_order, ordered=True)
+
+
 # from matplotlib import rc
 # rc('text', usetex=True)
 # tick_labels = ["$10^{i}$" for i in range(-3,5)]
@@ -182,6 +188,8 @@ fully_agg = (iguana_data >> group_by("triplestore", "dataset")
 
 fully_agg['triplestore'] = pd.Categorical(fully_agg['triplestore'], categories=cat_order,
                                           ordered=True)
+dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
+fully_agg['dataset'] = pd.Categorical(fully_agg['dataset'], categories=dataset_order, ordered=True)
 
 # data_agg.merge(fully_agg, on=["triplestore", "dataset"]).to_csv("iguana_data_fully_agg.tsv", sep="\t")
 

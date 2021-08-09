@@ -83,9 +83,9 @@ light_color_map = defaultdict(lambda: "lightgrey")
 color_map = defaultdict(lambda: "grey")
 for colors in [light_color_map, color_map]:
     colors.update(**{
-        'Tb': "#EB6F82",  # Dark Salmon Pink
-        'Th': "#d9bb45",  # Dark Medium Champagne
-        'Ti': "#49ABAB"  # Dark Maximum Blue Green
+        'Tb': "#8da0cb",
+        'Th': "#66c2a5",
+        'Ti': "#fc8d62"
     })
 
 # check if the right dir is used
@@ -109,10 +109,28 @@ for dataset in [iguana_data, iguana_data_agg]:
     dataset.replace(triplestore_short_mapping, inplace=True)
     dataset.replace(dataset_mapping, inplace=True)
 
+
+
 # iguana_data = iguana_data.query("triplestore != 'Tb' and triplestore != 'Th'")
 # iguana_data_agg = iguana_data_agg.query("triplestore != 'Tb' and triplestore != 'Th'")
 
 iguana_data_agg['runtime'] = 1 / iguana_data_agg['qps_mean']
+
+cat_order = [
+    'Tb',
+    'Th',
+    'Ti',
+    'B',
+    'F',
+    'Fl',
+    'G',
+    'S',
+    'V',
+]
+dataset['triplestore'] = pd.Categorical(dataset['triplestore'], categories=cat_order,
+                                        ordered=True)
+iguana_data_agg['triplestore'] = pd.Categorical(iguana_data_agg['triplestore'], categories=cat_order,
+                                        ordered=True)
 
 data_agg = (iguana_data_agg >> group_by('dataset', 'triplestore')
             >> summarize(mean_qps=np.mean(X.qps_mean),
@@ -164,6 +182,9 @@ fully_agg = (iguana_data >> group_by("triplestore", "dataset")
                           sum_failed=np.sum(X.failed))
              >> mutate(QMpH_rounded=np.round(X.QMpH).astype(int))
              )
+
+fully_agg['triplestore'] = pd.Categorical(fully_agg['triplestore'], categories=cat_order,
+                                        ordered=True)
 
 # data_agg.merge(fully_agg, on=["triplestore", "dataset"]).to_csv("iguana_data_fully_agg.tsv", sep="\t")
 
@@ -286,4 +307,4 @@ name = "paper-heatmap-watdiv-rel-T-hsi"
 save_as_pdf_pages([r], filename=f"{output_dir}{name}.pdf", bbox_inches="tight")
 watdiv_iguana_data_agg.to_csv(f"{output_dir}{name}.tsv", sep="\t", index=None)
 r.save(f"{output_dir}{name}.svg")
-#print(q)
+# print(q)

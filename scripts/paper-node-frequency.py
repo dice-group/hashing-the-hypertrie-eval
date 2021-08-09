@@ -54,9 +54,9 @@ triplestore_mapping = {
     'graphdb': 'graphDB',
     'gstore': 'gStore',
     'virtuoso': 'Virtuoso',
-    'tentris-1.0.7_lsb_unused_0': 'Tentris basline',
-    'tentris-1.1.0_lsb_unused_0': 'Tentris hash+sen',
-    'tentris-1.1.0_lsb_unused_1': 'Tentris hash+sen+inline'
+    'tentris-1.0.7_lsb_unused_0': 'Tentris-b',
+    'tentris-1.1.0_lsb_unused_0': 'Tentris-hs',
+    'tentris-1.1.0_lsb_unused_1': 'Tentris-hsi'
 }
 
 triplestore_short_mapping = {
@@ -77,8 +77,8 @@ nodetype_mapping = {
     'baseline': 'b',
     'compression': 's',
     'hash': 'h',
-    'hash+compression': 'h+s',
-    'hash+compression+inline': 'h+s+i'
+    'hash+compression': 'hs',
+    'hash+compression+inline': 'hsi'
 }
 
 dataset_mapping = {
@@ -152,7 +152,7 @@ long_node_counts.replace(nodetype_mapping, inplace=True)
 long_node_counts.replace(dataset_mapping, inplace=True)
 
 # order hypertrie types
-cat_order = ['b', 's', 'h', 'h+s', 'h+s+i']
+cat_order = ['b', 's', 'h', 'hs', 'hsi']
 long_node_counts['hypertrie_type'] = pd.Categorical(long_node_counts['hypertrie_type'], categories=cat_order,
                                                     ordered=True)
 depth_order = [2, 1]
@@ -165,7 +165,7 @@ long_node_counts.to_csv(str(data_dir.joinpath("long_node_counts.tsv")), sep="\t"
 # plot boxplot
 p = (ggplot(data=long_node_counts, mapping=aes(y='node_count', x='hypertrie_type', fill="node_type"))
      + geom_col()
-     # + scale_fill_manual(values=color_map)
+     + scale_fill_manual(values=["#b3cde3e0","#8c96c6e0"])
      #   + stat_summary(shape='x', fun_data='mean_cl_normal')
      + facet_wrap("~ depth + dataset", scales="free_y", nrow=2, labeller='label_both')
      # + scale_y_continuous(labels=scientific_format(digits=2))

@@ -15,13 +15,13 @@ triplestore_mapping = {
     'gstore': 'gStore',
     'virtuoso': 'Virtuoso',
     'tentris-1.0.7_lsb_unused_0': 'Tentris-b',
-    'tentris-1.1.0_lsb_unused_0': 'Tentris-hs',
-    'tentris-1.1.0_lsb_unused_1': 'Tentris-hsi'
+    'tentris-1.1.0_lsb_unused_0': 'Tentris-h',
+    'tentris-1.1.0_lsb_unused_1': 'Tentris-i'
 }
 triplestore_order = [
     'Tentris-b',
-    'Tentris-hs',
-    'Tentris-hsi',
+    'Tentris-h',
+    'Tentris-i',
     'Blazegraph',
     'Fuseki',
     'Fuseki-LTJ',
@@ -116,9 +116,9 @@ def index_stats_plot(name: str,
 
 color_map = defaultdict(lambda: "lightgrey")
 color_map.update(**{
-    'Tentris-b': "#8da0cb",
-    'Tentris-hs': "#66c2a5",
-    'Tentris-hsi': "#fc8d62"
+    'Tentris-b': "#8da0cbe0",
+    'Tentris-h': "#66c2a5e0",
+    'Tentris-i': "#fc8d62e0"
 })
 index_stats_plot(name="index-sizes",
                  data=data,

@@ -1,8 +1,6 @@
-# TODO: sort-order
-# TODO: nice colors
-
 import pathlib
 from collections import defaultdict
+from typing import List
 
 from plotnine import *
 
@@ -78,6 +76,16 @@ dataset_mapping = {
     'wikidata-2020-11-11': "Wikidata"
 }
 
+
+def minor_log10_breaks(min: float, max: float) -> List[float]:
+    import math
+    min_exp = math.floor(math.log10(min))
+    max_exp = math.ceil(math.log10(max))
+    breaks = [10 ** t * i for t in range(min_exp, max_exp + 1) for i in range(2, 10)]
+    breaks = [n for n in breaks if n >= min and n <= max]
+    return breaks
+
+
 light_color_map = defaultdict(lambda: "lightgrey")
 
 color_map = defaultdict(lambda: "grey")
@@ -136,7 +144,7 @@ data_agg = (iguana_data_agg >> group_by('dataset', 'triplestore')
             >> mutate(avgQpS_rounded=np.round(X.mean_qps).astype(int))
             )
 ticks = [10 ** i for i in range(-4, 5)]
-tick_labels = ["10{}".format(str(i).translate(trans)) for i in range(-4, 5)]
+tick_labels = ["10{}".format(str(i).translate(trans)) if i != 0 else "1" for i in range(-4, 5)]
 
 datasets = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
 data_agg['dataset'] = pd.Categorical(data_agg['dataset'], categories=datasets, ordered=True)
@@ -165,10 +173,12 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_m
                    stroke=0)
      + geom_boxplot(outlier_stroke=0, outlier_alpha=0.8, outlier_size=0.8, alpha=0, fatten=1)
      + scale_y_log10(breaks=ticks,
-                     labels=tick_labels)
+                     labels=tick_labels,
+                     minor_breaks=minor_log10_breaks(1 / 180, 10 ** 4),
+                     )
      + scale_fill_manual(values=color_map)
 
-     #   + stat_summary(shape='x', fun_data='mean_cl_normal')
+     # + stat_summary(shape='x', fun_data='mean_cl_normal')
      + facet_grid(".~dataset", scales="free_y")
      + theme_light()
      + ylab('Average QpS')
@@ -176,9 +186,10 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_m
      + geom_point(data=data_agg, mapping=aes(x='triplestore', y='mean_qps'), shape='x')
      + geom_text(data=timeout_text, mapping=aes(x='triplestore', y='mean_qps', label="label"), color="red", size=5,
                  nudge_x=0.5,
+                 alpha=.7,
                  )
-     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5, )
-     + geom_hline(yintercept=0.0055, color="red")
+     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5)
+     + geom_hline(yintercept=0.0055, color="#FF000099", alpha=.7)
      + theme(
             axis_text_x=element_blank(),
             # panel_grid_major=element_blank(),
@@ -192,13 +203,12 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_m
      )
 name = "paper-box-plot"
 
-# print(p)
-
 fully_agg = (iguana_data >> group_by("triplestore", "dataset")
              >> summarize(QMpH=1 * 60 ** 2 * 1000 / np.sum(X.penalizedTime) * np.max(X.run) + 1,
                           sum_succeeded=np.sum(X.succeeded),
                           sum_failed=np.sum(X.failed))
-             >> mutate(QMpH_rounded=np.round(X.QMpH).astype(int))
+             >> mutate(QMpH_rounded=X.QMpH.apply(
+            lambda x: format(x, '.2f') if x < 10 else format(x, '.1f') if x < 100 else format(x, '.0f')))
              )
 
 fully_agg['triplestore'] = pd.Categorical(fully_agg['triplestore'], categories=triplestores,
@@ -208,10 +218,11 @@ fully_agg['dataset'] = pd.Categorical(fully_agg['dataset'], categories=datasets,
 
 # data_agg.merge(fully_agg, on=["triplestore", "dataset"]).to_csv("iguana_data_fully_agg.tsv", sep="\t")
 
-tick_labels = ["  10{}".format(str(i).translate(trans)) for i in range(-4, 5)]
+ticks = [10 ** i for i in range(0, 4)]
+tick_labels = ["  10{}".format(str(i).translate(trans)) if i != 0 else "1" for i in range(0, 4)]
 
 na_text = pd.DataFrame(data={
-    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.4], 'dataset': 3 * ['Wikidata'], }
+    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.6], 'dataset': 3 * ['Wikidata'], }
 )
 na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
 na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)
@@ -220,11 +231,12 @@ q = (ggplot(data=fully_agg, mapping=aes(y='QMpH', x='triplestore', fill="triples
      + geom_bar(stat="identity", position='dodge', alpha=0.85)
      + scale_y_log10(breaks=ticks,
                      labels=tick_labels,
-                     # expand=(0, 0, 0.3, 0)
+                     expand=(0, 0.23, 0.3, 0),
+                     minor_breaks=minor_log10_breaks(1, 2000)
                      )
      + scale_fill_manual(values=light_color_map)
      + facet_grid(".~dataset", scales="free_y")
-     # + geom_text(mapping=aes(label='QMpH_rounded'), size=5, va='bottom', angle="45" )
+     + geom_text(mapping=aes(label='QMpH_rounded'), size=5, va='bottom', angle="45", color="#4D4D4D")
      + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5, )
      + xlab('')
      + theme_light()
@@ -245,6 +257,12 @@ ticks = [x * 10 for x in range(0, 10)]
 tick_labels = [f"    {i}" for i in ticks]
 # ticks = [float(x) for x in ticks]
 
+na_text = pd.DataFrame(data={
+    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.4], 'dataset': 3 * ['Wikidata'], }
+)
+na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
+na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)
+
 fully_agg >>= mutate(percent_failed=100 * X.sum_failed / (X.sum_succeeded + X.sum_failed))
 r = (ggplot(data=fully_agg, mapping=aes(y='percent_failed', x='triplestore', fill="triplestore"))
      + geom_bar(stat="identity", position='dodge', alpha=0.85)
@@ -262,6 +280,7 @@ r = (ggplot(data=fully_agg, mapping=aes(y='percent_failed', x='triplestore', fil
                  # nudge_x=.1,
                  # format_string='{:.0f}% ',
                  format_string='{:.0f}',
+                 color="#4D4D4D",
                  )
      + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5, )
      + theme_light()

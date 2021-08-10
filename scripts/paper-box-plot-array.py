@@ -376,10 +376,18 @@ watdiv_iguana_data_agg['triplestore'] = pd.Categorical(watdiv_iguana_data_agg['t
                                                        categories=list(reversed(triplestores)),
                                                        ordered=True)
 
-r = (ggplot(watdiv_iguana_data_agg, aes('queryID', 'triplestore', fill=f'QpS rel. to {triplestore}'))
+watdiv_query_names = pd.read_csv(data_dir.joinpath("watdiv_query_names.tsv"), sep="\t", index_col=False)
+watdiv_iguana_data_agg = watdiv_iguana_data_agg.merge(watdiv_query_names)
+
+watdiv_iguana_data_agg['name'] = pd.Categorical(watdiv_iguana_data_agg['name'],
+                                                categories=watdiv_iguana_data_agg['name'].unique(),
+                                                ordered=True)
+
+
+r = (ggplot(watdiv_iguana_data_agg, aes('name', 'triplestore', fill=f'QpS rel. to {triplestore}'))
      + geom_tile()
      # + geom_text(aes(label=f'avgQPS relative to {triplestore}'), size=10)
-     + xlab("Query ID")
+     + xlab("Query")
      + ylab("Triplestore")
      # + geom_text(mapping=aes(label='QMpH_rounded'), size=5, va='bottom', angle="45" )
      + theme_light()
@@ -390,6 +398,7 @@ r = (ggplot(watdiv_iguana_data_agg, aes('queryID', 'triplestore', fill=f'QpS rel
              # legend_text=element_text('speedup (log10)'),
              # legend_position='none',
              # axis_text_y=element_text(weight="bold")
+             axis_text_x=element_text(rotation=90),
              figure_size=(6.5, 1.25),
              legend_title_align='center',
              )

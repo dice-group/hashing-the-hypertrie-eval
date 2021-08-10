@@ -222,7 +222,7 @@ ticks = [10 ** i for i in range(0, 4)]
 tick_labels = ["  10{}".format(str(i).translate(trans)) if i != 0 else "1" for i in range(0, 4)]
 
 na_text = pd.DataFrame(data={
-    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.6], 'dataset': 3 * ['Wikidata'], }
+    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.5], 'dataset': 3 * ['Wikidata'], }
 )
 na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
 na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)
@@ -258,7 +258,7 @@ tick_labels = [f"    {i}" for i in ticks]
 # ticks = [float(x) for x in ticks]
 
 na_text = pd.DataFrame(data={
-    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.4], 'dataset': 3 * ['Wikidata'], }
+    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.2], 'dataset': 3 * ['Wikidata'], }
 )
 na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
 na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)

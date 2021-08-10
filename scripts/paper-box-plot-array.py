@@ -114,7 +114,7 @@ for dataset in [iguana_data, iguana_data_agg]:
 
 iguana_data_agg['runtime'] = 1 / iguana_data_agg['qps_mean']
 
-cat_order = [
+triplestores = [
     'Tb',
     'Th',
     'Ti',
@@ -125,9 +125,9 @@ cat_order = [
     'S',
     'V',
 ]
-dataset['triplestore'] = pd.Categorical(dataset['triplestore'], categories=cat_order,
+dataset['triplestore'] = pd.Categorical(dataset['triplestore'], categories=triplestores,
                                         ordered=True)
-iguana_data_agg['triplestore'] = pd.Categorical(iguana_data_agg['triplestore'], categories=cat_order,
+iguana_data_agg['triplestore'] = pd.Categorical(iguana_data_agg['triplestore'], categories=triplestores,
                                                 ordered=True)
 
 data_agg = (iguana_data_agg >> group_by('dataset', 'triplestore')
@@ -138,18 +138,28 @@ data_agg = (iguana_data_agg >> group_by('dataset', 'triplestore')
 ticks = [10 ** i for i in range(-4, 5)]
 tick_labels = ["10{}".format(str(i).translate(trans)) for i in range(-4, 5)]
 
-dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
-data_agg['dataset'] = pd.Categorical(data_agg['dataset'], categories=dataset_order, ordered=True)
-dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
-iguana_data_agg['dataset'] = pd.Categorical(iguana_data_agg['dataset'], categories=dataset_order, ordered=True)
-
+datasets = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
+data_agg['dataset'] = pd.Categorical(data_agg['dataset'], categories=datasets, ordered=True)
+iguana_data_agg['dataset'] = pd.Categorical(iguana_data_agg['dataset'], categories=datasets, ordered=True)
 
 # from matplotlib import rc
 # rc('text', usetex=True)
 # tick_labels = ["$10^{i}$" for i in range(-3,5)]
 
+
+timeout_text = pd.DataFrame(data={
+    'triplestore': [1], 'mean_qps': [1 / 120], 'dataset': 'SWDF', 'label': 'timeout'}
+)
+timeout_text['dataset'] = pd.Categorical(timeout_text['dataset'], categories=datasets, ordered=True)
+
+na_text = pd.DataFrame(data={
+    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1 / 73], 'dataset': 3 * ['Wikidata'], }
+)
+na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
+na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)
+
 # plot boxplot
-p = (ggplot(data=iguana_data_agg, mapping=aes(y='qps_mean', x='triplestore'))
+p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_mean', x='triplestore'))
      + geom_jitter(alpha=0.3, mapping=aes(fill='triplestore', color='triplestore'),
                    na_rm=True,
                    stroke=0)
@@ -164,6 +174,11 @@ p = (ggplot(data=iguana_data_agg, mapping=aes(y='qps_mean', x='triplestore'))
      + ylab('Average QpS')
      + xlab('')
      + geom_point(data=data_agg, mapping=aes(x='triplestore', y='mean_qps'), shape='x')
+     + geom_text(data=timeout_text, mapping=aes(x='triplestore', y='mean_qps', label="label"), color="red", size=5,
+                 nudge_x=0.5,
+                 )
+     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5, )
+     + geom_hline(yintercept=0.0055, color="red")
      + theme(
             axis_text_x=element_blank(),
             # panel_grid_major=element_blank(),
@@ -186,14 +201,20 @@ fully_agg = (iguana_data >> group_by("triplestore", "dataset")
              >> mutate(QMpH_rounded=np.round(X.QMpH).astype(int))
              )
 
-fully_agg['triplestore'] = pd.Categorical(fully_agg['triplestore'], categories=cat_order,
+fully_agg['triplestore'] = pd.Categorical(fully_agg['triplestore'], categories=triplestores,
                                           ordered=True)
-dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
-fully_agg['dataset'] = pd.Categorical(fully_agg['dataset'], categories=dataset_order, ordered=True)
+datasets = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
+fully_agg['dataset'] = pd.Categorical(fully_agg['dataset'], categories=datasets, ordered=True)
 
 # data_agg.merge(fully_agg, on=["triplestore", "dataset"]).to_csv("iguana_data_fully_agg.tsv", sep="\t")
 
 tick_labels = ["  10{}".format(str(i).translate(trans)) for i in range(-4, 5)]
+
+na_text = pd.DataFrame(data={
+    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.4], 'dataset': 3 * ['Wikidata'], }
+)
+na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
+na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)
 
 q = (ggplot(data=fully_agg, mapping=aes(y='QMpH', x='triplestore', fill="triplestore"))
      + geom_bar(stat="identity", position='dodge', alpha=0.85)
@@ -203,8 +224,46 @@ q = (ggplot(data=fully_agg, mapping=aes(y='QMpH', x='triplestore', fill="triples
                      )
      + scale_fill_manual(values=light_color_map)
      + facet_grid(".~dataset", scales="free_y")
-     + xlab("Triplestore")
      # + geom_text(mapping=aes(label='QMpH_rounded'), size=5, va='bottom', angle="45" )
+     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5, )
+     + xlab('')
+     + theme_light()
+     + theme(
+            axis_text_x=element_blank(),
+            strip_background=element_blank(),
+            strip_text=element_blank(),
+            # panel_grid_major=element_blank(),
+            # panel_grid_minor=element_blank(),
+            legend_position='none',
+            axis_ticks_major_x=element_blank(),
+            # axis_text_y=element_text(weight="bold")
+            figure_size=(7.5, 1)
+        )
+     )
+
+ticks = [x * 10 for x in range(0, 10)]
+tick_labels = [f"    {i}" for i in ticks]
+# ticks = [float(x) for x in ticks]
+
+fully_agg >>= mutate(percent_failed=100 * X.sum_failed / (X.sum_succeeded + X.sum_failed))
+r = (ggplot(data=fully_agg, mapping=aes(y='percent_failed', x='triplestore', fill="triplestore"))
+     + geom_bar(stat="identity", position='dodge', alpha=0.85)
+     + scale_fill_manual(values=light_color_map)
+     + facet_grid(".~dataset", scales="free_y")
+     + xlab("Triplestore")
+     + scale_y_continuous(breaks=ticks, labels=tick_labels,
+                          limits=(0, fully_agg.percent_failed.max() * 1.1),
+                          name="% failed Q")
+     + geom_text(data=fully_agg.query("sum_failed > 0"),
+                 mapping=aes(label='percent_failed'),
+                 # stat='percent_failed',
+                 size=5,
+                 va='bottom',
+                 # nudge_x=.1,
+                 # format_string='{:.0f}% ',
+                 format_string='{:.0f}',
+                 )
+     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5, )
      + theme_light()
      + theme(strip_background=element_blank(),
              strip_text=element_blank(),
@@ -214,10 +273,12 @@ q = (ggplot(data=fully_agg, mapping=aes(y='QMpH', x='triplestore', fill="triples
              # axis_text_y=element_text(weight="bold")
              figure_size=(7.5, 1)
              )
+
      )
+
 # print(q)
 name = "paper-benchmark-results"
-save_as_pdf_pages([p, q], filename=f"{output_dir}{name}.pdf", bbox_inches="tight", pad_inches=0.03)
+save_as_pdf_pages([p, q, r], filename=f"{output_dir}{name}.pdf", bbox_inches="tight", pad_inches=0.03)
 p.save(f"{output_dir}{name}-scatter.svg")
 q.save(f"{output_dir}{name}-QMpH.svg")
 
@@ -293,7 +354,7 @@ watdiv_iguana_data_agg[f'QpS rel. to {triplestore}'] = np.log10(
     watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'])
 
 watdiv_iguana_data_agg['triplestore'] = pd.Categorical(watdiv_iguana_data_agg['triplestore'],
-                                                       categories=list(reversed(cat_order)),
+                                                       categories=list(reversed(triplestores)),
                                                        ordered=True)
 
 r = (ggplot(watdiv_iguana_data_agg, aes('queryID', 'triplestore', fill=f'QpS rel. to {triplestore}'))

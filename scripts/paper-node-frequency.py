@@ -155,8 +155,8 @@ long_node_counts.replace(dataset_mapping, inplace=True)
 cat_order = ['b', 's', 'h', 'hs', 'hsi']
 long_node_counts['hypertrie_type'] = pd.Categorical(long_node_counts['hypertrie_type'], categories=cat_order,
                                                     ordered=True)
-depth_order = [2, 1]
-long_node_counts['depth'] = pd.Categorical(long_node_counts['depth'], categories=depth_order, ordered=True)
+height_order = [2, 1]
+long_node_counts['height'] = pd.Categorical(long_node_counts['depth'], categories=height_order, ordered=True)
 dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
 long_node_counts['dataset'] = pd.Categorical(long_node_counts['dataset'], categories=dataset_order, ordered=True)
 
@@ -167,7 +167,7 @@ p = (ggplot(data=long_node_counts, mapping=aes(y='node_count', x='hypertrie_type
      + geom_col()
      + scale_fill_manual(values=["#b3cde3e0","#8c96c6e0"])
      #   + stat_summary(shape='x', fun_data='mean_cl_normal')
-     + facet_wrap("~ depth + dataset", scales="free_y", nrow=2, labeller='label_both')
+     + facet_wrap("~ height + dataset", scales="free_y", nrow=2, labeller='label_both')
      # + scale_y_continuous(labels=scientific_format(digits=2))
      + scale_y_continuous(labels=human_format())
      # + facet_grid("depth ~  dataset", scales="free", space = "free")

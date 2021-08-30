@@ -131,7 +131,7 @@ index_stats_plot(name="index-sizes",
                  color_map=color_map,
                  data_labels='bytes_per_statement_label',
                  padding='index_size_y_pad',
-                 ylabel="Index size [bytes/statement]",
+                 ylabel="Storage efficiency [bytes/statement]",
                  with_x_legend=True,
                  )
 

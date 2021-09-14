@@ -47,34 +47,6 @@ trans = str.maketrans(
     ''.join(superscript_map.keys()),
     ''.join(superscript_map.values()))
 
-# TODO: sort-order
-# TODO: nice colors
-
-triplestore_mapping = {
-    'blazegraph': 'Blazegraph',
-    'fuseki': 'Fuseki',
-    'graphdb': 'graphDB',
-    'gstore': 'gStore',
-    'virtuoso': 'Virtuoso',
-    'tentris-1.0.7_lsb_unused_0': 'Tentris-b',
-    'tentris-1.1.0_lsb_unused_0': 'Tentris-hs',
-    'tentris-1.1.0_lsb_unused_1': 'Tentris-hsi'
-}
-
-triplestore_short_mapping = {
-    'blazegraph': 'B',
-    'fuseki': 'F',
-    'graphdb': 'G',
-    'gstore': 'S',
-    'virtuoso': 'V',
-    'tentris-1.0.7': 'Tb',
-    'tentris-1.0.7_lsb_unused_0': 'Tb',
-    'tentris-1.1.0_lsb_unused_0': 'Th',
-    'tentris-1.1.0-lsb_unused_0': 'Th',
-    'tentris-1.1.0_lsb_unused_1': 'Ti',
-    'tentris-1.1.0-lsb_unused_1': 'Ti',
-}
-
 nodetype_mapping = {
     'baseline': 'b',
     'compression': 's',

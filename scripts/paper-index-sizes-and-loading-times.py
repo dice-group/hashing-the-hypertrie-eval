@@ -101,12 +101,15 @@ def index_stats_plot(name: str,
          + theme_light()
          + theme(
                 axis_text_x=element_blank(),
+                axis_title_x=element_text(margin={'t':9,'b':0}),
                 panel_grid_major=element_blank(),
                 panel_grid_minor=element_blank(),
                 axis_text_y=None if with_x_legend else element_blank(),
                 axis_ticks_major_y=None if with_x_legend else element_blank(),
+                axis_ticks_major_x=element_blank(),
                 legend_position='none',
-                figure_size=(4.0, 2.5)
+                figure_size=(3.8, 2.5),
+                text=element_text(family="Linux Biolinum O", size=9)
             )
          )
     save_as_pdf_pages([p], filename=output_dir.joinpath(f"paper-{name}.pdf").absolute(), bbox_inches="tight")

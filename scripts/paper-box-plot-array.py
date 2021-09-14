@@ -184,11 +184,11 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_m
      + ylab('Average QpS')
      + xlab('')
      + geom_point(data=data_agg, mapping=aes(x='triplestore', y='mean_qps'), shape='x')
-     + geom_text(data=timeout_text, mapping=aes(x='triplestore', y='mean_qps', label="label"), color="red", size=5,
+     + geom_text(data=timeout_text, mapping=aes(x='triplestore', y='mean_qps', label="label"), color="red", size=6,
                  nudge_x=0.5,
                  alpha=.7,
                  )
-     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5)
+     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=6)
      + geom_hline(yintercept=0.0055, color="#FF000099", alpha=.7)
      + theme(
             axis_text_x=element_blank(),
@@ -198,7 +198,8 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_m
             axis_ticks_major_x=element_blank(),
             # TODO: label nice machen
             # axis_text_y=element_text(weight="bold")
-            figure_size=(7.5, 2)
+            figure_size=(7.5, 2),
+            text=element_text(family="Linux Biolinum O", size=9)
         )
      )
 name = "paper-box-plot"
@@ -219,7 +220,7 @@ fully_agg['dataset'] = pd.Categorical(fully_agg['dataset'], categories=datasets,
 # data_agg.merge(fully_agg, on=["triplestore", "dataset"]).to_csv("iguana_data_fully_agg.tsv", sep="\t")
 
 ticks = [10 ** i for i in range(0, 4)]
-tick_labels = ["  10{}".format(str(i).translate(trans)) if i != 0 else "1" for i in range(0, 4)]
+tick_labels = ["        10{}".format(str(i).translate(trans)) if i != 0 else "1" for i in range(0, 4)]
 
 na_text = pd.DataFrame(data={
     'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.5], 'dataset': 3 * ['Wikidata'], }
@@ -236,8 +237,8 @@ q = (ggplot(data=fully_agg, mapping=aes(y='QMpH', x='triplestore', fill="triples
                      )
      + scale_fill_manual(values=light_color_map)
      + facet_grid(".~dataset", scales="free_y")
-     + geom_text(mapping=aes(label='QMpH_rounded'), size=5, va='bottom', angle="45", color="#4D4D4D")
-     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5, )
+     + geom_text(mapping=aes(label='QMpH_rounded'), size=6, va='bottom', angle="45", color="#4D4D4D")
+     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=6, )
      + xlab('')
      + theme_light()
      + theme(
@@ -249,12 +250,13 @@ q = (ggplot(data=fully_agg, mapping=aes(y='QMpH', x='triplestore', fill="triples
             legend_position='none',
             axis_ticks_major_x=element_blank(),
             # axis_text_y=element_text(weight="bold")
-            figure_size=(7.5, 1)
+            figure_size=(7.5, 1),
+            text=element_text(family="Linux Biolinum O", size=9)
         )
      )
 
 ticks = [x * 10 for x in range(0, 10)]
-tick_labels = [f"    {i}" for i in ticks]
+tick_labels = [f"          {i}" for i in ticks]
 # ticks = [float(x) for x in ticks]
 
 na_text = pd.DataFrame(data={
@@ -275,14 +277,14 @@ r = (ggplot(data=fully_agg, mapping=aes(y='percent_failed', x='triplestore', fil
      + geom_text(data=fully_agg.query("sum_failed > 0"),
                  mapping=aes(label='percent_failed'),
                  # stat='percent_failed',
-                 size=5,
+                 size=6,
                  va='bottom',
                  # nudge_x=.1,
                  # format_string='{:.0f}% ',
                  format_string='{:.0f}',
                  color="#4D4D4D",
                  )
-     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=5, )
+     + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=6, )
      + theme_light()
      + theme(strip_background=element_blank(),
              strip_text=element_blank(),
@@ -290,7 +292,8 @@ r = (ggplot(data=fully_agg, mapping=aes(y='percent_failed', x='triplestore', fil
              # panel_grid_minor=element_blank(),
              legend_position='none',
              # axis_text_y=element_text(weight="bold")
-             figure_size=(7.5, 1)
+             figure_size=(7.5, 1),
+            text=element_text(family="Linux Biolinum O", size=9)
              )
 
      )
@@ -389,7 +392,7 @@ r = (ggplot(watdiv_iguana_data_agg, aes('name', 'triplestore', fill=f'QpS rel. t
      # + geom_text(aes(label=f'avgQPS relative to {triplestore}'), size=10)
      + xlab("Query")
      + ylab("Triplestore")
-     # + geom_text(mapping=aes(label='QMpH_rounded'), size=5, va='bottom', angle="45" )
+     # + geom_text(mapping=aes(label='QMpH_rounded'), size=6, va='bottom', angle="45" )
      + theme_light()
      + theme(strip_background=element_blank(),
              strip_text=element_blank(),
@@ -401,6 +404,7 @@ r = (ggplot(watdiv_iguana_data_agg, aes('name', 'triplestore', fill=f'QpS rel. t
              axis_text_x=element_text(rotation=90),
              figure_size=(6.5, 1.25),
              legend_title_align='center',
+            text=element_text(family="Linux Biolinum O", size=9)
              )
      + scale_fill_gradient2(low="#08519c", mid="#f7fbff", high="red",  # colors in the scale
                             midpoint=0,  # same midpoint for plots (mean of the range)

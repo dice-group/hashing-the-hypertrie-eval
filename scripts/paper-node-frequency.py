@@ -149,7 +149,9 @@ p = (ggplot(data=long_node_counts, mapping=aes(y='node_count', x='hypertrie_type
      + ylab('Node count')
      + xlab('')
      + labs(fill='Node type')
-     + theme(subplots_adjust={'wspace': 0.4},
+     + theme(
+            strip_background_x=element_text(color="#808080", ),
+            subplots_adjust={'wspace': 0.4},
              axis_text_x=element_text(rotation=90, hjust=0.5),
              # axis_text_x=element_blank(),
              # panel_grid_major=element_blank(),

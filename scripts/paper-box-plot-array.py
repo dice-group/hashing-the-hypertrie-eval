@@ -181,7 +181,7 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_m
      # + stat_summary(shape='x', fun_data='mean_cl_normal')
      + facet_grid(".~dataset", scales="free_y")
      + theme_light()
-     + ylab('Average QpS')
+     + ylab('QpS')
      + xlab('')
      + geom_point(data=data_agg, mapping=aes(x='triplestore', y='mean_qps'), shape='x')
      + geom_text(data=timeout_text, mapping=aes(x='triplestore', y='mean_qps', label="label"), color="red", size=6,
@@ -191,6 +191,7 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_m
      + geom_text(data=na_text, mapping=aes(x='triplestore', y='mean_qps'), label="n/a", color="grey", size=6)
      + geom_hline(yintercept=0.0055, color="#FF000099", alpha=.7)
      + theme(
+            strip_background_x=element_text(color="#808080", ),
             axis_text_x=element_blank(),
             # panel_grid_major=element_blank(),
             # panel_grid_minor=element_blank(),
@@ -307,43 +308,6 @@ q.save(f"{output_dir}{name}-QMpH.svg")
 iguana_data_agg.to_csv(f"{output_dir}{name}-scatter.tsv", sep="\t", index=None)
 fully_agg.to_csv(f"{output_dir}{name}-QMpH.tsv", sep="\t", index=None)
 
-# q.save(f"{output_dir}{name}.svg")
-# print(q)
-
-# from matplotlib import gridspec
-# fig = (ggplot()+geom_blank(data=fully_agg)+theme_void()).draw()
-#
-# gs = gridspec.GridSpec(1,2)
-# ax1 = fig.add_subplot(gs[0,0])
-# ax2 = fig.add_subplot(gs[0,1])
-#
-#
-# # Add subplots to the figure
-# _ = p._draw_using_figure(fig, [ax1])
-# _ = q._draw_using_figure(fig, [ax2])
-# fig.show()
-# fig.save("xxxxxxxxxxx.svg")
-
-
-# q = (ggplot(data=iguana_data_agg, mapping=aes(y='runtime', x='triplestore'))
-#      + geom_jitter(alpha=0.1, mapping=aes(fill='triplestore', color='triplestore'))
-#      + geom_boxplot(outlier_alpha=0.8, outlier_size=0.8, alpha=0)
-#      # + scale_y_log10()
-#      # + stat_summary(shape = 'x')
-#      + facet_grid(".~dataset", scales="free_y")
-#      + theme_light()
-#      + ylab('Average runtime')
-#      + geom_point(data=data_agg, mapping=aes(x='triplestore', y='mean_runtime'), shape='x', color='#DB57B2')
-#      + theme(strip_background=element_rect(fill="steelblue"),
-#              # axis_text_x=element_blank(),
-#              panel_grid_major=element_blank(),
-#              panel_grid_minor=element_blank(),
-#              legend_position='none',
-#              # axis_text_y=element_text(weight="bold")
-#              )
-#      )
-# print(q)
-
 
 watdiv_iguana_data_agg = iguana_data_agg.query("dataset == 'WatDiv'")
 triplestore = 'Ti'
@@ -371,9 +335,9 @@ def func(d: pd.DataFrame):
         return None
 
 
-watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'] = watdiv_iguana_data_agg.apply(func, axis=1).values
+watdiv_iguana_data_agg[f'QPS relative to {triplestore}'] = watdiv_iguana_data_agg.apply(func, axis=1).values
 watdiv_iguana_data_agg[f'QpS rel. to {triplestore}'] = np.log10(
-    watdiv_iguana_data_agg[f'avgQPS relative to {triplestore}'])
+    watdiv_iguana_data_agg[f'QPS relative to {triplestore}'])
 
 watdiv_iguana_data_agg['triplestore'] = pd.Categorical(watdiv_iguana_data_agg['triplestore'],
                                                        categories=list(reversed(triplestores)),
@@ -394,7 +358,9 @@ r = (ggplot(watdiv_iguana_data_agg, aes('name', 'triplestore', fill=f'QpS rel. t
      + ylab("Triplestore")
      # + geom_text(mapping=aes(label='QMpH_rounded'), size=6, va='bottom', angle="45" )
      + theme_light()
-     + theme(strip_background=element_blank(),
+     + theme(
+            strip_background_x=element_text(color="#808080", ),
+            strip_background=element_blank(),
              strip_text=element_blank(),
              panel_grid_major=element_blank(),
              panel_grid_minor=element_blank(),

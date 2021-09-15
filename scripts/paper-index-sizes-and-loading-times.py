@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+import pandas as pd
 from plotnine import *
 from dfply import *
 
@@ -38,6 +39,8 @@ dataset_mapping = {
     'wikidata-2020-11-11': "Wikidata"
 }
 
+datasets = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
+
 data_dir = Path("data")
 if not data_dir.exists():
     import sys
@@ -63,14 +66,13 @@ data["dataset"] = data["dataset"].replace(dataset_mapping)
 # triplestore_order = data['triplestore'].value_counts().index.tolist()
 data["triplestore"] = data["triplestore"].astype('category').cat.reorder_categories(triplestore_order)
 
+
 # table entry strings
 data["bytes_per_statement_label"] = data["bytes_per_statement"].apply(
     lambda x: "{:.0f}".format(x) if x > 1 else "{:.3f}".format(x))
 data["statements1k_per_second_label"] = data["statements1k_per_second"].apply(
     lambda x: "{:.0f}".format(x) if x >= 10 else "{:.2f}".format(x))
-# data["index_size_gb_label"] = data["index_size_gb"].apply(lambda x: "{:.0f}".format(x) if x > 1 else "{:.3f}".format(x))
-# data["loading_time_label"] = data["loading_time"].apply(lambda x: "{:.0f}".format(x) if x >= 10 else "{:.2f}".format(x))
-#
+
 data >>= (
         group_by(X.dataset)
         >> mutate(max_bytes_per_statement=colmax(X.bytes_per_statement),
@@ -81,6 +83,13 @@ data >>= (
 )
 
 
+na_text = pd.DataFrame(data={
+    'triplestore': ["Tentris-b", "gStore", "Virtuoso"], 'dataset': 3 * ['Wikidata'] }
+)
+na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
+na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestore_order, ordered=True)
+
+
 def index_stats_plot(name: str,
                      data: pd.DataFrame,
                      x: str, y: str,
@@ -88,11 +97,13 @@ def index_stats_plot(name: str,
                      data_labels: str,
                      padding: str,
                      ylabel: str,
-                     with_x_legend:bool) -> ggplot:
+                     with_x_legend:bool,
+                     na_text: pd.DataFrame) -> ggplot:
     p = (ggplot(data=data) +
          geom_bar(aes(y=y, x=x, fill=x), stat="identity", position='dodge')
          + scale_fill_manual(values=color_map)
-         + geom_text(aes(label=data_labels, x=x, y=padding), va='center', ha='left')
+         + geom_text(aes(label=data_labels, x=x, y=padding), va='center', ha='left', size=9)
+         + geom_text(data=na_text, mapping=aes(x=x, y=0), va='center', ha='left', label="n/a", color="grey", size=9, )
          + facet_grid(".~dataset", scales="free_x")
          + ylab(ylabel)
          + xlab("")
@@ -100,6 +111,7 @@ def index_stats_plot(name: str,
          + coord_flip()
          + theme_light()
          + theme(
+                strip_background_x=element_text(color="#808080",),
                 axis_text_x=element_blank(),
                 axis_title_x=element_text(margin={'t':9,'b':0}),
                 panel_grid_major=element_blank(),
@@ -108,7 +120,7 @@ def index_stats_plot(name: str,
                 axis_ticks_major_y=None if with_x_legend else element_blank(),
                 axis_ticks_major_x=element_blank(),
                 legend_position='none',
-                figure_size=(3.8, 2.5),
+                figure_size=(3.8, 2.1),
                 text=element_text(family="Linux Biolinum O", size=9)
             )
          )
@@ -136,6 +148,7 @@ index_stats_plot(name="index-sizes",
                  padding='index_size_y_pad',
                  ylabel="Storage efficiency [bytes/statement]",
                  with_x_legend=True,
+                 na_text=na_text
                  )
 
 index_stats_plot(name="loading-times",
@@ -146,5 +159,6 @@ index_stats_plot(name="loading-times",
                  data_labels='statements1k_per_second_label',
                  padding='loading_time_y_pad',
                  ylabel="Loading speed [1k statements/second]",
-                 with_x_legend=False
+                 with_x_legend=False,
+                 na_text=na_text
                  )

@@ -1,0 +1,9 @@
+click==8.0.1
+iguanaresult2csv==3.2.0
+
+pyjanitor
+dfply
+pandas
+plotly
+plotnine
+matplotlib

@@ -45,7 +45,6 @@ def combine_rdf_files(input_dir: Path, combined_ttl: Path):
 @click.option("--base-dir", default=Path().absolute(), type=click.Path(exists=True),
               help="Where the data and raw_data directories are located.")
 def prepare_benchmarking_data(base_dir: Path):
-    """Simple program that greets NAME for a total of COUNT times."""
     raw_data_dir = base_dir.joinpath("raw_data/benchmarking_results")
     if not raw_data_dir.exists():
         click.echo("There must be a raw_data folder provided in the base-dir. "

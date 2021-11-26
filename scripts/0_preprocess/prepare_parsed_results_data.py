@@ -6,7 +6,8 @@ from typing import List, Optional
 
 def transform_id(id: int, dataset: str, triplestore: str) -> Optional[int]:
     if ((triplestore == "fuseki" and dataset == 'wikidata-2020-11-11') or
-            (triplestore == "fuseki-ltj")):
+            (triplestore == "fuseki-ltj") or
+            (triplestore == "virtuoso"  and dataset == 'wikidata-2020-11-11')):
         return id
     else:
         excluded_queries = {

@@ -51,6 +51,8 @@ triplestore_mapping = {
     'gstore': 'gStore',
     'virtuoso': 'Virtuoso',
     'tentris-1.0.7_lsb_unused_0': 'Tentris basline',
+    'tentris-1.1.0_hashing_only': 'Tentris hash',
+    'tentris-1.1.0-hashing_only': 'Tentris hash',
     'tentris-1.1.0_lsb_unused_0': 'Tentris hash+sen',
     'tentris-1.1.0_lsb_unused_1': 'Tentris hash+sen+inline'
 }
@@ -64,8 +66,10 @@ triplestore_short_mapping = {
     'virtuoso': 'V',
     'tentris-1.0.7': 'Tb',
     'tentris-1.0.7_lsb_unused_0': 'Tb',
-    'tentris-1.1.0_lsb_unused_0': 'Th',
-    'tentris-1.1.0-lsb_unused_0': 'Th',
+    'tentris-1.1.0_lsb_unused_0': 'Ts',
+    'tentris-1.1.0-lsb_unused_0': 'Ts',
+    'tentris-1.1.0_hashing_only': 'Th',
+    'tentris-1.1.0-hashing_only': 'Th',
     'tentris-1.1.0_lsb_unused_1': 'Ti',
     'tentris-1.1.0-lsb_unused_1': 'Ti',
 }
@@ -91,9 +95,10 @@ light_color_map = defaultdict(lambda: "lightgrey")
 color_map = defaultdict(lambda: "grey")
 for colors in [light_color_map, color_map]:
     colors.update(**{
-        'Tb': "#8da0cb",
-        'Th': "#66c2a5",
-        'Ti': "#fc8d62"
+        'Tb': "#8DA0CB",
+        'Th': "#66C2A5",
+        'Ts': "#EDC707",
+        'Ti': "#FC8D62"
     })
 
 # check if the right dir is used
@@ -113,10 +118,6 @@ iguana_data = pd.read_csv("data/benchmarking_results_with_result_stats.csv")  # 
 
 iguana_data_agg = pd.read_csv("data/benchmarking_results_with_result_stats_agg.csv")  # .fillna(np.nan).convert_dtypes()
 
-for dataset in [iguana_data, iguana_data_agg]:
-    dataset.replace(triplestore_short_mapping, inplace=True)
-    dataset.replace(dataset_mapping, inplace=True)
-
 # iguana_data = iguana_data.query("triplestore != 'Tb' and triplestore != 'Th'")
 # iguana_data_agg = iguana_data_agg.query("triplestore != 'Tb' and triplestore != 'Th'")
 
@@ -125,6 +126,7 @@ iguana_data_agg['runtime'] = 1 / iguana_data_agg['qps_mean']
 triplestores = [
     'Tb',
     'Th',
+    'Ts',
     'Ti',
     'B',
     'F',
@@ -133,10 +135,11 @@ triplestores = [
     'S',
     'V',
 ]
-dataset['triplestore'] = pd.Categorical(dataset['triplestore'], categories=triplestores,
-                                        ordered=True)
-iguana_data_agg['triplestore'] = pd.Categorical(iguana_data_agg['triplestore'], categories=triplestores,
-                                                ordered=True)
+for dataset in [iguana_data, iguana_data_agg]:
+    dataset.replace(triplestore_short_mapping, inplace=True)
+    dataset.replace(dataset_mapping, inplace=True)
+    dataset['triplestore'] = pd.Categorical(dataset['triplestore'], categories=triplestores,
+                                            ordered=True)
 
 data_agg = (iguana_data_agg >> group_by('dataset', 'triplestore')
             >> summarize(mean_qps=np.mean(X.qps_mean),
@@ -161,13 +164,13 @@ timeout_text = pd.DataFrame(data={
 timeout_text['dataset'] = pd.Categorical(timeout_text['dataset'], categories=datasets, ordered=True)
 
 na_text = pd.DataFrame(data={
-    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1 / 73], 'dataset': 3 * ['Wikidata'], }
+    'triplestore': ["Tb", "S"], 'mean_qps': 2 * [1 / 73], 'dataset': 2 * ['Wikidata'], }
 )
 na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
 na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)
 
 # plot boxplot
-p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_mean', x='triplestore'))
+p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180 and not wrongResult"), mapping=aes(y='qps_mean', x='triplestore'))
      + geom_jitter(alpha=0.3, mapping=aes(fill='triplestore', color='triplestore'),
                    na_rm=True,
                    stroke=0)
@@ -203,6 +206,7 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180"), mapping=aes(y='qps_m
             text=element_text(family="Linux Biolinum O", size=9)
         )
      )
+print(p) ## Problem tritt hier auf
 name = "paper-box-plot"
 
 fully_agg = (iguana_data >> group_by("triplestore", "dataset")
@@ -224,7 +228,7 @@ ticks = [10 ** i for i in range(0, 4)]
 tick_labels = ["        10{}".format(str(i).translate(trans)) if i != 0 else "1" for i in range(0, 4)]
 
 na_text = pd.DataFrame(data={
-    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.5], 'dataset': 3 * ['Wikidata'], }
+    'triplestore': ["Tb", "S"], 'mean_qps': 2 * [1.5], 'dataset': 2 * ['Wikidata'], }
 )
 na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
 na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)
@@ -261,7 +265,7 @@ tick_labels = [f"          {i}" for i in ticks]
 # ticks = [float(x) for x in ticks]
 
 na_text = pd.DataFrame(data={
-    'triplestore': ["Tb", "S", "V"], 'mean_qps': 3 * [1.2], 'dataset': 3 * ['Wikidata'], }
+    'triplestore': ["Tb", "S"], 'mean_qps': 2 * [1.2], 'dataset': 2 * ['Wikidata'], }
 )
 na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
 na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestores, ordered=True)

@@ -6,7 +6,6 @@ from dfply import *
 
 from pathlib import Path
 
-# TODO: nice colors
 
 triplestore_mapping = {
     'blazegraph': 'Blazegraph',
@@ -16,11 +15,13 @@ triplestore_mapping = {
     'gstore': 'gStore',
     'virtuoso': 'Virtuoso',
     'tentris-1.0.7_lsb_unused_0': 'Tentris-b',
+    'tentris-1.1.0_hashing_only': 'Tentris-h',
     'tentris-1.1.0_lsb_unused_0': 'Tentris-hs',
-    'tentris-1.1.0_lsb_unused_1': 'Tentris-hsi'
+    'tentris-1.1.0_lsb_unused_1': 'Tentris-hsi',
 }
 triplestore_order = [
     'Tentris-b',
+    'Tentris-h',
     'Tentris-hs',
     'Tentris-hsi',
     'Blazegraph',
@@ -65,7 +66,7 @@ data["triplestore"] = data["triplestore"].replace(triplestore_mapping)
 data["dataset"] = data["dataset"].replace(dataset_mapping)
 # triplestore_order = data['triplestore'].value_counts().index.tolist()
 data["triplestore"] = data["triplestore"].astype('category').cat.reorder_categories(triplestore_order)
-
+print(data["triplestore"].unique())
 
 # table entry strings
 data["bytes_per_statement_label"] = data["bytes_per_statement"].apply(
@@ -84,7 +85,7 @@ data >>= (
 
 
 na_text = pd.DataFrame(data={
-    'triplestore': ["Tentris-b", "gStore", "Virtuoso"], 'dataset': 3 * ['Wikidata'] }
+    'triplestore': ["Tentris-b", "gStore"], 'dataset': 2 * ['Wikidata'] }
 )
 na_text['dataset'] = pd.Categorical(na_text['dataset'], categories=datasets, ordered=True)
 na_text['triplestore'] = pd.Categorical(na_text['triplestore'], categories=triplestore_order, ordered=True)
@@ -131,9 +132,10 @@ def index_stats_plot(name: str,
 
 color_map = defaultdict(lambda: "lightgrey")
 color_map.update(**{
-    'Tentris-b': "#8da0cbe0",
-    'Tentris-hs': "#66c2a5e0",
-    'Tentris-hsi': "#fc8d62e0"
+      'Tentris-b': "#8DA0CB",
+        'Tentris-h': "#66C2A5",
+        'Tentris-hs': "#EDC707",
+        'Tentris-hsi': "#FC8D62"
 })
 
 dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']

@@ -5,5 +5,5 @@ pyjanitor
 dfply
 pandas
 plotly
-plotnine
-matplotlib
+plotnine==0.8.0
+matplotlib==3.1.1

@@ -40,9 +40,12 @@ light_color_map = defaultdict(lambda: "lightgrey")
 color_map = defaultdict(lambda: "grey")
 for colors in [light_color_map, color_map]:
     colors.update(**{
-        'Tb': "#EB6F82",  # Dark Salmon Pink
-        'Th': "#d9bb45",  # Dark Medium Champagne
-        'Ti': "#49ABAB"  # Dark Maximum Blue Green
+        'b': "#8DA0CB",
+        # 's' : "#9F4A54",
+        's': "#EFAAC4",
+        'h': "#66C2A5",
+        'hs': "#EDC707",
+        'hsi': "#FC8D62"
     })
 
 data_dir = Path("data")
@@ -93,32 +96,42 @@ long_node_counts.replace(nodetype_mapping, inplace=True)
 long_node_counts.replace(dataset_mapping, inplace=True)
 
 # order hypertrie types
-cat_order = ['b', 's', 'h', 'hs', 'hsi']
-long_node_counts['hypertrie_type'] = pd.Categorical(long_node_counts['hypertrie_type'], categories=cat_order,
-                                                    ordered=True)
+cat_order = ['b', 'h', 's', 'hs', 'hsi']
 height_order = [2, 1]
-long_node_counts['Height'] = pd.Categorical(long_node_counts['depth'], categories=height_order, ordered=True)
 dataset_order = ['SWDF', 'DBpedia', 'WatDiv', 'Wikidata']
-long_node_counts['Dataset'] = pd.Categorical(long_node_counts['dataset'], categories=dataset_order, ordered=True)
 
-long_node_counts.to_csv(str(data_dir.joinpath("long_node_counts.tsv")), sep="\t", index=False)
+long_fullnode_counts = pd.DataFrame(
+    long_node_counts
+        .query('node_type == "uncompressed_nodes"')
+        .drop(columns=["depth", "node_type"])
+        .groupby(['hypertrie_type', 'dataset'])
+        .sum()
+        .to_records())
+long_fullnode_counts['hypertrie_type'] = pd.Categorical(long_fullnode_counts['hypertrie_type'], categories=cat_order,
+                                                        ordered=True)
+long_fullnode_counts['dataset'] = pd.Categorical(long_fullnode_counts['dataset'], categories=dataset_order,
+                                                 ordered=True)
+
+long_fullnode_counts.to_csv(str(data_dir.joinpath("long_fullnode_counts.tsv")), sep="\t", index=False)
 
 large_font_size = 9
 small_font_size = 6.5
 
 # plot boxplot
-p = (ggplot(data=long_node_counts, mapping=aes(y='node_count', x='hypertrie_type', fill="node_type"))
+p = (ggplot(data=long_fullnode_counts, mapping=aes(y='node_count', x='hypertrie_type', fill="hypertrie_type"))
      + geom_col()
-     + scale_fill_manual(values=["#b3cde3e0", "#8c96c6e0"])
+     + scale_fill_manual(values=light_color_map)
+     # + scale_fill_manual(values=["#b3cde3e0", "#8c96c6e0"])
      #   + stat_summary(shape='x', fun_data='mean_cl_normal')
-     + facet_wrap("~ Height + Dataset", scales="free_y", nrow=2, labeller='label_both')
+     # + facet_grid(".~dataset", scales="free_y")
+     + facet_wrap("dataset", scales="free_y", nrow=1)
      # + scale_y_continuous(labels=scientific_format(digits=2))
      + scale_y_continuous(labels=human_format())
      # + facet_grid("depth ~  dataset", scales="free", space = "free")
      + theme_light()
-     + ylab('Node count')
+     + ylab('Full node count')
      + xlab('Hypertrie version')
-     + labs(fill='Node type')
+     # + labs(fill='Node type')
      + theme(
             strip_background_x=element_text(color="#808080", ),
             subplots_adjust={'wspace': 0.4},
@@ -135,12 +148,12 @@ p = (ggplot(data=long_node_counts, mapping=aes(y='node_count', x='hypertrie_type
             # axis_ticks_major_x=element_blank(),
             # TODO: label nice machen
             # axis_text_y=element_text(weight="bold")
-            figure_size=(5.5, 1.8),
+            figure_size=(5.5, .9),
             text=element_text(size=small_font_size)
         )
      )
 
-name = "node-count"
+name = "full-node-count"
 p.save(str(output_dir.joinpath(f"paper-{name}.svg")))
 save_as_pdf_pages([p], filename=output_dir.joinpath(f"paper-{name}.pdf").absolute(), bbox_inches="tight")
 # print(p)

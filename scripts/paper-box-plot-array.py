@@ -183,6 +183,7 @@ p = (ggplot(data=iguana_data_agg.query("qps_mean > 1/180 and not wrongResult"),
      + theme(
             strip_background_x=element_text(color="#808080", ),
             axis_text_x=element_blank(),
+            axis_title_y=element_text(size=large_font_size),
             # panel_grid_major=element_blank(),
             # panel_grid_minor=element_blank(),
             axis_title_x=element_text(size=large_font_size),
